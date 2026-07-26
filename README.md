@@ -190,6 +190,10 @@ git diff --check
 
 貢献方法は [CONTRIBUTING.md](CONTRIBUTING.md)、ライセンスは [LICENSE](LICENSE)、依存ライセンスの概要は [NOTICE](NOTICE) を参照してください。
 
+## CI/CD
+
+Pushes to `main` run tests and deploy the production Worker through GitHub Actions. Pull requests create an isolated staging Worker and add its Preview URL to the PR.
+
 ## Current limitations
 
 - 既定の期限は72時間です。
