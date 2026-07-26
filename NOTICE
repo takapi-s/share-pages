@@ -1,0 +1,10 @@
+share-pages includes or depends on open-source software distributed under their respective licenses.
+
+Primary direct dependencies:
+
+- agents — MIT — https://github.com/cloudflare/agents
+- @modelcontextprotocol/sdk — MIT — https://github.com/modelcontextprotocol/typescript-sdk
+- marked — MIT — https://github.com/markedjs/marked
+- zod — MIT — https://github.com/colinhacks/zod
+
+The complete dependency graph and exact versions are recorded in package-lock.json. License metadata for transitive dependencies should be regenerated for each release.

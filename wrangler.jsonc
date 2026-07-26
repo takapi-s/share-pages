@@ -1,0 +1,37 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "share-pages",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-07-25",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "r2_buckets": [
+    {
+      "binding": "SHARE_BUCKET",
+      "bucket_name": "share-pages"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [{ "name": "MCP_OBJECT", "class_name": "SharePagesMcp" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["SharePagesMcp"] }],
+  "triggers": {
+    "crons": ["*/15 * * * *"]
+  },
+  "env": {
+    "staging": {
+      "name": "share-pages-staging",
+      "vars": { "SHARE_PAGES_ORIGIN": "https://YOUR_WORKER_SUBDOMAIN.workers.dev" },
+      "durable_objects": { "bindings": [{ "name": "MCP_OBJECT", "class_name": "SharePagesMcp" }] },
+      "r2_buckets": [{ "binding": "SHARE_BUCKET", "bucket_name": "share-pages-staging" }],
+      "triggers": { "crons": ["*/15 * * * *"] }
+    },
+    "production": {
+      "name": "share-pages-production",
+      "vars": { "SHARE_PAGES_ORIGIN": "https://YOUR_WORKER_SUBDOMAIN.workers.dev" },
+      "durable_objects": { "bindings": [{ "name": "MCP_OBJECT", "class_name": "SharePagesMcp" }] },
+      "r2_buckets": [{ "binding": "SHARE_BUCKET", "bucket_name": "share-pages" }],
+      "triggers": { "crons": ["*/15 * * * *"] }
+    }
+  }
+}
