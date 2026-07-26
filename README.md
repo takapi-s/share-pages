@@ -54,6 +54,24 @@ SHARE_PAGES_DATA_DIR=/secure/path/share-pages-data npm start
 SHARE_PAGES_URL=http://127.0.0.1:8787 npm run mcp
 ```
 
+## Hosted instance
+
+運営者がホスティングしているHosted instanceを利用できます。
+
+```text
+https://share-pages-production.pocky1111gm.workers.dev
+```
+
+- Google OAuthによるログインが必要です。
+- 現在は設定済みの許可ドメイン・許可メールアドレスの範囲で利用できます。
+- 共有ページは公開URLを知っている人が閲覧できます。
+- 共有ページの有効期限は72時間です。
+- 運営者はサービスの停止、データ削除、仕様変更を行う場合があります。
+- 可用性やデータ保存を保証するサービスではありません。
+- 機密情報、個人情報、認証情報、重要な業務データはアップロードしないでください。
+
+利用者自身で管理したい場合は、以下のCloudflare Workers手順でセルフホストしてください。
+
 ## Cloudflare Workers
 
 1. Cloudflareへログインします。
