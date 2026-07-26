@@ -70,7 +70,42 @@ npx wrangler@4.114.0 login
 npx wrangler@4.114.0 r2 bucket create YOUR_BUCKET_NAME
 ```
 
-4. Secretを設定します。値はリポジトリやログへ保存しないでください。
+4. GitHub Actions用のCloudflare API Tokenを作成します。
+
+Cloudflare Dashboardの次のページを開きます。
+
+```text
+https://dash.cloudflare.com/profile/api-tokens
+```
+
+`Create Token`から、手動のR2 API Tokenではなく、Cloudflare Workers用のテンプレートを選択します。
+
+```text
+Create Token
+→ Edit Cloudflare Workers
+```
+
+テンプレートが表示されない場合は、`Custom token`で次のAccount権限を設定します。
+
+```text
+Account Settings: Read
+Workers Scripts: Edit
+Workers R2 Storage: Edit
+```
+
+Durable ObjectsはWorkerのデプロイとmigrationの一部として扱うため、別のDurable Objects用S3/R2 Tokenは作成しません。`workers_dev: true`の構成ではZone Workers Routes権限も不要です。
+
+Account Resourcesは対象のCloudflareアカウント1つだけに限定してください。`All accounts`は選択しないでください。CI専用Tokenには有効期限を設定し、定期的にローテーションしてください。
+
+5. GitHubリポジトリのSecretへ登録します。Tokenの値はリポジトリへ書き込まず、GitHub Secretだけに保存します。
+
+```sh
+gh secret set CLOUDFLARE_API_TOKEN --repo YOUR_GITHUB_OWNER/share-pages
+```
+
+プロンプトにTokenを入力します。Tokenはチャット、Issue、ログ、READMEへ貼り付けないでください。
+
+6. Google OAuthのSecretを設定します。値はリポジトリへ保存しません。
 
 ```sh
 npx wrangler@4.114.0 secret put GOOGLE_CLIENT_ID --env staging
@@ -81,13 +116,13 @@ npx wrangler@4.114.0 secret put MCP_OAUTH_SIGNING_SECRET --env staging
 
 `SHARE_API_TOKEN`を使う場合は、MCP OAuthの代わりにWorker APIを保護する用途として設定します。
 
-5. Google OAuthのリダイレクトURIに登録します。
+7. Google OAuthのリダイレクトURIに登録します。
 
 ```text
 https://YOUR_WORKER_HOST/auth/callback
 ```
 
-6. dry-run、テスト、デプロイを実行します。
+8. dry-run、テスト、デプロイを実行します。
 
 ```sh
 npm run check
