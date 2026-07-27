@@ -54,7 +54,8 @@ test('uploads markdown and renders a share page with download link', async () =>
     assert.match(html, /data-mode="preview"/);
     assert.match(html, /data-mode="preview"[^>]*>.*?data-mode="split" aria-pressed="false".*?data-mode="preview" aria-pressed="true"/s);
     assert.match(html, /focusSourceElement/);
-    assert.match(html, /data-mode="source"/);
+    assert.doesNotMatch(html, /data-mode="source"/);
+    assert.match(html, /→ 原文/);
     assert.match(html, /syncTo/);
     assert.match(html, /class="preview-pane"/);
 
