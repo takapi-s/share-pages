@@ -16,6 +16,10 @@ const sanitizeHtml = source => source
   .replace(/<base\b[^>]*>/gi, '')
   .replace(/<form\b[^>]*>[\s\S]*?<\/form\s*>/gi, '');
 
+function normalizeMarkdownEscapes(source) {
+  return String(source).replace(/\\+_/g, '_');
+}
+
 function normalizeMarkdownRules(source) {
   const lines = String(source).replace(/\r\n?/g, '\n').split('\n');
   let fenced = false;
@@ -33,7 +37,7 @@ function repairMarkdownRules(html) {
 }
 
 function markdown(source) {
-  return sanitizeHtml(repairMarkdownRules(marked.parse(normalizeMarkdownRules(source), { gfm: true, breaks: false, headerIds: false, mangle: false })));
+  return sanitizeHtml(repairMarkdownRules(marked.parse(normalizeMarkdownRules(normalizeMarkdownEscapes(source)), { gfm: true, breaks: false, headerIds: false, mangle: false })));
 }
 
 function json(data, status = 200) { return new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } }); }

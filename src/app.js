@@ -10,6 +10,10 @@ function escapeHtml(value) {
   return value.replace(/[&<>'"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[ch]);
 }
 
+function normalizeMarkdownEscapes(source) {
+  return String(source).replace(/\\+_/g, '_');
+}
+
 function normalizeMarkdownRules(source) {
   const lines = String(source).replace(/\r\n?/g, '\n').split('\n');
   let fenced = false;
@@ -27,7 +31,7 @@ function repairMarkdownRules(html) {
 }
 
 function renderMarkdown(source) {
-  return sanitizeHtml(repairMarkdownRules(marked.parse(normalizeMarkdownRules(source), { gfm: true, breaks: false, headerIds: false, mangle: false })));
+  return sanitizeHtml(repairMarkdownRules(marked.parse(normalizeMarkdownRules(normalizeMarkdownEscapes(source)), { gfm: true, breaks: false, headerIds: false, mangle: false })));
 }
 
 function sanitizeHtml(source) {
