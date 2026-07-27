@@ -57,7 +57,7 @@ test('uploads markdown and renders a share page with download link', async () =>
 
 test('renders full markdown structures and strips unsafe raw HTML', async () => {
   await withServer(async base => {
-    const source = '# Title\n\n## Section\n\n- one\n- two\n\n> quoted\n\n| Name | Value |\n| --- | --- |\n| answer | 42 |\n\n```js\nconst answer = 42;\n```\n\n---\n\n[link](https://example.com)\n\n<script>alert(1)</script>';
+    const source = '# Title\n\n## Section\n\n- one\n- two\n\n> quoted\n\n| Name | Value |\n| --- | --- |\n| answer | 42 |\n\n```js\nconst answer = 42;\n---\n```\n\n目的\n\u00a0---\u00a0\n次の節\n\n[link](https://example.com)\n\n<script>alert(1)</script>';
     const form = new FormData();
     form.append('file', new Blob([source], { type: 'text/markdown' }), 'advanced.md');
     const result = await (await fetch(`${base}/api/upload`, { method: 'POST', body: form })).json();
@@ -67,7 +67,7 @@ test('renders full markdown structures and strips unsafe raw HTML', async () => 
     assert.match(html, /<ul>[\s\S]*<li>one<\/li>[\s\S]*<li>two<\/li>[\s\S]*<\/ul>/);
     assert.match(html, /<blockquote>[\s\S]*quoted[\s\S]*<\/blockquote>/);
     assert.match(html, /<table>[\s\S]*<th>Name<\/th>[\s\S]*<td>42<\/td>[\s\S]*<\/table>/);
-    assert.match(html, /<pre><code class="language-js">/);
+    assert.match(html, /<pre><code class="language-js">const answer = 42;\n---\n<\/code><\/pre>/);
     assert.match(html, /<hr>/);
     assert.match(html, /class="markdown-content"/);
     assert.match(html, /\.markdown-content hr\{/);

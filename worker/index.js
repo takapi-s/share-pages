@@ -16,8 +16,18 @@ const sanitizeHtml = source => source
   .replace(/<base\b[^>]*>/gi, '')
   .replace(/<form\b[^>]*>[\s\S]*?<\/form\s*>/gi, '');
 
+function normalizeMarkdownRules(source) {
+  const lines = String(source).replace(/\r\n?/g, '\n').split('\n');
+  let fenced = false;
+  return lines.map(line => {
+    if (/^\s*(```|~~~)/.test(line)) fenced = !fenced;
+    if (!fenced && /^[ \t\u00a0]*-{3,}[ \t\u00a0]*$/.test(line)) return '\n---\n';
+    return line;
+  }).join('\n');
+}
+
 function markdown(source) {
-  return sanitizeHtml(marked.parse(source, { gfm: true, breaks: false, headerIds: false, mangle: false }));
+  return sanitizeHtml(marked.parse(normalizeMarkdownRules(source), { gfm: true, breaks: false, headerIds: false, mangle: false }));
 }
 
 function json(data, status = 200) { return new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } }); }

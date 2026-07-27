@@ -10,8 +10,18 @@ function escapeHtml(value) {
   return value.replace(/[&<>'"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[ch]);
 }
 
+function normalizeMarkdownRules(source) {
+  const lines = String(source).replace(/\r\n?/g, '\n').split('\n');
+  let fenced = false;
+  return lines.map(line => {
+    if (/^\s*(```|~~~)/.test(line)) fenced = !fenced;
+    if (!fenced && /^[ \t\u00a0]*-{3,}[ \t\u00a0]*$/.test(line)) return '\n---\n';
+    return line;
+  }).join('\n');
+}
+
 function renderMarkdown(source) {
-  return sanitizeHtml(marked.parse(source, { gfm: true, breaks: false, headerIds: false, mangle: false }));
+  return sanitizeHtml(marked.parse(normalizeMarkdownRules(source), { gfm: true, breaks: false, headerIds: false, mangle: false }));
 }
 
 function sanitizeHtml(source) {
