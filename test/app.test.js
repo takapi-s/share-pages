@@ -83,6 +83,10 @@ test('uploads HTML and isolates it in a sandbox iframe', async () => {
     const html = await page.text();
     assert.match(html, /sandbox=""/);
     assert.match(html, new RegExp(`/p/${result.id}/content`));
+    assert.match(html, /class="tools"/);
+    assert.match(html, /class="content"/);
+    assert.doesNotMatch(html, /content-card/);
+    assert.doesNotMatch(html, /border:1px solid #ddd/);
     assert.doesNotMatch(html, /window\.pwned/);
 
     const content = await fetch(`${base}/p/${result.id}/content`);
