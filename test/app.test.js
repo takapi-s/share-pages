@@ -50,12 +50,9 @@ test('uploads markdown and renders a share page with download link', async () =>
     assert.match(html, /download/);
     assert.match(html, /class="source-panel"/);
     assert.match(html, /textarea/);
-    assert.match(html, /data-mode="split"/);
     assert.match(html, /data-mode="preview"/);
-    assert.match(html, /data-mode="preview"[^>]*>.*?data-mode="split" aria-pressed="false".*?data-mode="preview" aria-pressed="true"/s);
-    assert.match(html, /focusSourceElement/);
+    assert.match(html, /data-mode="preview"[^>]*>.*?id="toggleMode"[^>]*>分割表示/s);
     assert.doesNotMatch(html, /data-mode="source"/);
-    assert.match(html, /→ 原文/);
     assert.match(html, /syncTo/);
     assert.match(html, /class="preview-pane"/);
     assert.match(html, /CodeMirror\.fromTextArea/);
@@ -106,7 +103,8 @@ test('uploads HTML and isolates it in a sandbox iframe', async () => {
     const html = await page.text();
     assert.match(html, /<iframe sandbox="allow-same-origin"/);
     assert.match(html, /data-mode="preview"/);
-    assert.match(html, /syncTo/);
+    assert.match(html, /id="toggleMode"[^>]*>分割表示<\/button>/);
+    assert.match(html, /if\('text\/html'==='text\/html'\)return/);
     assert.match(html, new RegExp(`/p/${result.id}/content`));
     assert.match(html, /class="tools"/);
     assert.match(html, /class="content"/);
