@@ -86,6 +86,7 @@ test('uploads HTML and isolates it in a sandbox iframe', async () => {
     assert.match(html, /class="tools"/);
     assert.match(html, /class="content"/);
     assert.doesNotMatch(html, /content-card/);
+    assert.doesNotMatch(html, /max-width:1100px;margin:0 auto;padding:2rem 1rem/);
     assert.doesNotMatch(html, /border:1px solid #ddd/);
     assert.doesNotMatch(html, /window\.pwned/);
 
