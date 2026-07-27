@@ -26,8 +26,14 @@ function normalizeMarkdownRules(source) {
   }).join('\n');
 }
 
+function repairMarkdownRules(html) {
+  return html
+    .replace(/<p>([^<]*?)\n[ \t\u00a0]*-{3,}[ \t\u00a0]*\n([^<]*?)<\/p>/g, '<p>$1</p><hr><p>$2</p>')
+    .replace(/<p>[ \t\u00a0]*-{3,}[ \t\u00a0]*<\/p>/g, '<hr>');
+}
+
 function markdown(source) {
-  return sanitizeHtml(marked.parse(normalizeMarkdownRules(source), { gfm: true, breaks: false, headerIds: false, mangle: false }));
+  return sanitizeHtml(repairMarkdownRules(marked.parse(normalizeMarkdownRules(source), { gfm: true, breaks: false, headerIds: false, mangle: false })));
 }
 
 function json(data, status = 200) { return new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } }); }
