@@ -58,6 +58,8 @@ test('uploads markdown and renders a share page with download link', async () =>
     assert.match(html, /→ 原文/);
     assert.match(html, /syncTo/);
     assert.match(html, /class="preview-pane"/);
+    assert.match(html, /CodeMirror\.fromTextArea/);
+    assert.match(html, /cdnjs\.cloudflare\.com\/ajax\/libs\/codemirror\/5\.65\.16/);
 
     const update = await fetch(`${base}/api/pages/${result.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ source: '# Updated\n\nChanged' }) });
     assert.equal(update.status, 200);
@@ -108,6 +110,8 @@ test('uploads HTML and isolates it in a sandbox iframe', async () => {
     assert.match(html, new RegExp(`/p/${result.id}/content`));
     assert.match(html, /class="tools"/);
     assert.match(html, /class="content"/);
+    assert.match(html, /mode:'htmlmixed'/);
+    assert.match(html, /CodeMirror\.fromTextArea/);
     assert.doesNotMatch(html, /content-card/);
     assert.doesNotMatch(html, /max-width:1100px;margin:0 auto;padding:2rem 1rem/);
     assert.doesNotMatch(html, /border:1px solid #ddd/);
