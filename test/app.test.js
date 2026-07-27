@@ -50,7 +50,11 @@ test('uploads markdown and renders a share page with download link', async () =>
     assert.match(html, /download/);
     assert.match(html, /class="source-panel"/);
     assert.match(html, /textarea/);
-    assert.match(html, /api\/pages\//);
+    assert.match(html, /data-mode="split"/);
+    assert.match(html, /data-mode="preview"/);
+    assert.match(html, /data-mode="source"/);
+    assert.match(html, /syncTo/);
+    assert.match(html, /class="preview-pane"/);
 
     const update = await fetch(`${base}/api/pages/${result.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ source: '# Updated\n\nChanged' }) });
     assert.equal(update.status, 200);
@@ -81,7 +85,7 @@ test('renders full markdown structures and strips unsafe raw HTML', async () => 
     assert.match(html, /\.markdown-content hr\{/);
     assert.match(html, /\.markdown-content table\{/);
     assert.match(html, /href="https:\/\/example\.com"/);
-    const rendered = html.match(/<section class="content">([\s\S]*?)<\/section>/)[1];
+    const rendered = html.match(/<div class="content">([\s\S]*?)<\/div>/)[1];
     assert.doesNotMatch(rendered, /<script/i);
   });
 });
@@ -95,7 +99,9 @@ test('uploads HTML and isolates it in a sandbox iframe', async () => {
     const result = await upload.json();
     const page = await fetch(result.url);
     const html = await page.text();
-    assert.match(html, /sandbox=""/);
+    assert.match(html, /<iframe sandbox="allow-same-origin"/);
+    assert.match(html, /data-mode="preview"/);
+    assert.match(html, /syncTo/);
     assert.match(html, new RegExp(`/p/${result.id}/content`));
     assert.match(html, /class="tools"/);
     assert.match(html, /class="content"/);
