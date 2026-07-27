@@ -110,6 +110,8 @@ test('uploads HTML and isolates it in a sandbox iframe', async () => {
     assert.match(html, new RegExp(`/p/${result.id}/content`));
     assert.match(html, /class="tools"/);
     assert.match(html, /class="content"/);
+    assert.match(html, /CodeMirror\.fromTextArea/);
+    assert.match(html, /editor\.refresh\(\)/);
     assert.match(html, /mode:'htmlmixed'/);
     assert.match(html, /CodeMirror\.fromTextArea/);
     assert.doesNotMatch(html, /content-card/);
