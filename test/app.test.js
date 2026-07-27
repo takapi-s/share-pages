@@ -48,16 +48,30 @@ test('uploads markdown and renders a share page with download link', async () =>
     const html = await page.text();
     assert.match(html, /<h1[^>]*>Hello<\/h1>/);
     assert.match(html, /download/);
+    assert.match(html, /class="source-panel"/);
+    assert.match(html, /textarea/);
+    assert.match(html, /data-mode="preview"/);
+    assert.match(html, /data-mode="preview"[^>]*>.*?id="toggleMode"[^>]*>分割表示/s);
+    assert.doesNotMatch(html, /data-mode="source"/);
+    assert.match(html, /syncTo/);
+    assert.match(html, /class="preview-pane"/);
+    assert.match(html, /CodeMirror\.fromTextArea/);
+    assert.match(html, /cdnjs\.cloudflare\.com\/ajax\/libs\/codemirror\/5\.65\.16/);
+
+    const update = await fetch(`${base}/api/pages/${result.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ source: '# Updated\n\nChanged' }) });
+    assert.equal(update.status, 200);
+    const updatedContent = await fetch(`${base}/p/${result.id}/content`);
+    assert.match(await updatedContent.text(), /<h1[^>]*>Updated<\/h1>/);
 
     const download = await fetch(result.downloadUrl);
     assert.equal(download.status, 200);
-    assert.equal(await download.text(), '# Hello\n\nWorld');
+    assert.equal(await download.text(), '# Updated\n\nChanged');
   });
 });
 
 test('renders full markdown structures and strips unsafe raw HTML', async () => {
   await withServer(async base => {
-    const source = '# Title\n\n## Section\n\n- one\n- two\n\n```js\nconst answer = 42;\n```\n\n---\n\n[link](https://example.com)\n\n<script>alert(1)</script>';
+    const source = '# Title\n\n## Section\n\n- one\n- two\n\n> quoted\n\n| Name | Value |\n| --- | --- |\n| answer | 42 |\n\n```js\nconst answer = 42;\n---\nlist\\\\\\\\_papers()\n```\n\n目的\n\u00a0---\u00a0\n次の節\n\n[link](https://example.com)\n\n<script>alert(1)</script>';
     const form = new FormData();
     form.append('file', new Blob([source], { type: 'text/markdown' }), 'advanced.md');
     const result = await (await fetch(`${base}/api/upload`, { method: 'POST', body: form })).json();
@@ -65,10 +79,16 @@ test('renders full markdown structures and strips unsafe raw HTML', async () => 
     assert.match(html, /<h1[^>]*>Title<\/h1>/);
     assert.match(html, /<h2[^>]*>Section<\/h2>/);
     assert.match(html, /<ul>[\s\S]*<li>one<\/li>[\s\S]*<li>two<\/li>[\s\S]*<\/ul>/);
-    assert.match(html, /<pre><code class="language-js">/);
+    assert.match(html, /<blockquote>[\s\S]*quoted[\s\S]*<\/blockquote>/);
+    assert.match(html, /<table>[\s\S]*<th>Name<\/th>[\s\S]*<td>42<\/td>[\s\S]*<\/table>/);
+    assert.match(html, /<pre><code class="language-js">const answer = 42;\n---\nlist_papers\(\)\n<\/code><\/pre>/);
     assert.match(html, /<hr>/);
+    assert.match(html, /class="markdown-content"/);
+    assert.match(html, /\.markdown-content hr\{/);
+    assert.match(html, /\.markdown-content table\{/);
     assert.match(html, /href="https:\/\/example\.com"/);
-    assert.doesNotMatch(html, /<script/i);
+    const rendered = html.match(/<div class="content">([\s\S]*?)<\/div>/)[1];
+    assert.doesNotMatch(rendered, /<script/i);
   });
 });
 
@@ -81,14 +101,31 @@ test('uploads HTML and isolates it in a sandbox iframe', async () => {
     const result = await upload.json();
     const page = await fetch(result.url);
     const html = await page.text();
-    assert.match(html, /sandbox=""/);
+    assert.match(html, /<iframe sandbox="allow-same-origin"/);
+    assert.match(html, /data-mode="preview"/);
+    assert.match(html, /id="toggleMode"[^>]*>分割表示<\/button>/);
+    assert.match(html, /if\('text\/html'==='text\/html'\)return/);
     assert.match(html, new RegExp(`/p/${result.id}/content`));
-    assert.doesNotMatch(html, /window\.pwned/);
-
+    assert.match(html, /class="tools"/);
+    assert.match(html, /class="content"/);
+    assert.match(html, /CodeMirror\.fromTextArea/);
+    assert.match(html, /editor\.refresh\(\)/);
+    assert.match(html, /mode:'htmlmixed'/);
+    assert.match(html, /CodeMirror\.fromTextArea/);
+    assert.doesNotMatch(html, /content-card/);
+    assert.doesNotMatch(html, /max-width:1100px;margin:0 auto;padding:2rem 1rem/);
+    assert.doesNotMatch(html, /border:1px solid #ddd/);
     const content = await fetch(`${base}/p/${result.id}/content`);
     assert.equal(content.status, 200);
     assert.equal(content.headers.get('content-type'), 'text/html; charset=utf-8');
     assert.doesNotMatch(await content.text(), /<script>/i);
+    assert.match(html, /window\.pwned/);
+    const update = await fetch(`${base}/api/pages/${result.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ source: '<h1>Updated</h1><script>alert(1)</script>' }) });
+    assert.equal(update.status, 200);
+    const updatedContent = await fetch(`${base}/p/${result.id}/content`);
+    const updatedHtmlContent = await updatedContent.text();
+    assert.match(updatedHtmlContent, /Updated/);
+    assert.doesNotMatch(updatedHtmlContent, /<script>/i);
   });
 });
 
