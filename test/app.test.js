@@ -47,12 +47,13 @@ test('uploads markdown and renders a share page with download link', async () =>
     assert.equal(page.status, 200);
     const html = await page.text();
     assert.match(html, /<h1[^>]*>Hello<\/h1>/);
-    assert.match(html, /<meta property="og:image" content="http:\/\/127\.0\.0\.1:\d+\/p\/[A-Za-z0-9_-]+\/preview\.svg">/);
+    assert.match(html, /<meta property="og:image" content="http:\/\/127\.0\.0\.1:\d+\/p\/[A-Za-z0-9_-]+\/preview\.png">/);
     assert.match(html, /name="twitter:card" content="summary_large_image"/);
-    const preview = await fetch(`${base}/p/${result.id}/preview.svg`);
+    const preview = await fetch(`${base}/p/${result.id}/preview.png`);
     assert.equal(preview.status, 200);
-    assert.equal(preview.headers.get('content-type'), 'image/svg+xml');
-    assert.match(await preview.text(), /Hello/);
+    assert.equal(preview.headers.get('content-type'), 'image/png');
+    const bytes = new Uint8Array(await preview.arrayBuffer());
+    assert.deepEqual([...bytes.slice(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
     assert.match(html, /download/);
     assert.match(html, /class="source-panel"/);
     assert.match(html, /textarea/);
