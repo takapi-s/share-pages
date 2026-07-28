@@ -219,8 +219,8 @@ export default {
     if (request.method === 'GET' && url.pathname === '/api/pages') {
       const listed = await env.SHARE_BUCKET.list({ prefix: 'pages/', delimiter: '/' });
       const result = [];
-      for (const prefix of listed.delimitedPrefixes || []) { const id = prefix.split('/')[1]; const meta = await isLive(env, id); if (meta && meta !== 'expired') result.push({ ...meta, url: `${url.origin}/p/${id}`, downloadUrl: `${url.origin}/p/${id}/download` }); }
-      return json(result.sort((a, b) => b.expiresAt - a.expiresAt));
+      for (const prefix of listed.delimitedPrefixes || []) { const id = prefix.split('/')[1]; const meta = await isLive(env, id); if (meta && meta !== 'expired') result.push({ ...meta, expiresAt: new Date(meta.expiresAt).toISOString(), url: `${url.origin}/p/${id}`, downloadUrl: `${url.origin}/p/${id}/download` }); }
+      return json(result.sort((a, b) => Date.parse(b.expiresAt) - Date.parse(a.expiresAt)));
     }
     if (request.method === 'POST' && url.pathname === '/api/upload') {
       const form = await request.formData(); const file = form.get('file');
