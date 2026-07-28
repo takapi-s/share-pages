@@ -22,8 +22,18 @@ const upper = ['01110,10001,10001,11111,10001,10001,10001','11110,10001,10001,11
 for (let i = 0; i < alphabet.length; i++) FONT[alphabet[i]] = upper[i].split(',');
 function glyph(ch) { return FONT[ch] || FONT[ch.toUpperCase()] || FONT['?']; }
 function excerpt(source, type) {
-  const text = type === 'text/html' ? String(source).replace(/<[^>]*>/g, ' ') : String(source).replace(/```[\s\S]*?```/g, ' ').replace(/[#>*_`~|-]/g, ' ');
+  let text = String(source);
+  if (type === 'text/html') {
+    text = text.replace(/<(style|script|noscript)[^>]*>[\s\S]*?<\/\1>/gi, ' ').replace(/<!--[\s\S]*?-->/g, ' ').replace(/<[^>]*>/g, ' ');
+    text = text.replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>').replace(/&quot;/gi, '"');
+  } else {
+    text = text.replace(/```[\s\S]*?```/g, ' ').replace(/[#>*_`~|-]/g, ' ');
+  }
   return text.replace(/https?:\/\/\S+/g, 'LINK').replace(/\s+/g, ' ').trim().slice(0, 150);
+}
+function asciiText(value, fallback) {
+  const text = String(value).replace(/[^\x20-\x7e]/g, ' ').replace(/\s+/g, ' ').trim();
+  return text || fallback;
 }
 function drawText(pixels, width, text, x, y, scale, color) {
   let cursor = x;
@@ -48,5 +58,5 @@ function png(width, height, pixels) {
 }
 export function previewPng(page, source) {
   const width = 1200, height = 630, pixels = new Uint8Array(width * height * 3); pixels.fill(0); for (let i = 0; i < pixels.length; i += 3) { pixels[i] = 11; pixels[i + 1] = 16; pixels[i + 2] = 32; } for (let y = 48; y < 582; y++) for (let x = 48; x < 1152; x++) if (x < 52 || x > 1147 || y < 52 || y > 577) { const i = (y * width + x) * 3; pixels[i] = 52; pixels[i + 1] = 69; pixels[i + 2] = 111; }
-  const title = String(page.originalName || 'SHARE-PAGES').replace(/[^\x20-\x7e]/g, '?').slice(0, 52); const body = excerpt(source, page.mime || page.contentType).replace(/[^\x20-\x7e]/g, '?'); drawText(pixels, width, title, 72, 112, 5, [247, 248, 255]); for (let i = 0; i < 3; i++) drawText(pixels, width, body.slice(i * 62, (i + 1) * 62), 72, 270 + i * 52, 3, [198, 208, 232]); drawText(pixels, width, `share-pages / ${page.mime === 'text/html' || page.contentType === 'text/html' ? 'HTML' : 'MARKDOWN'}`, 72, 520, 2, [130, 148, 198]); return png(width, height, pixels);
+  const isHtml = page.mime === 'text/html' || page.contentType === 'text/html'; const title = asciiText(page.originalName || 'SHARE-PAGES', 'SHARE-PAGES').slice(0, 52); const body = asciiText(excerpt(source, page.mime || page.contentType), isHtml ? 'HTML PAGE - OPEN LINK TO VIEW' : 'MARKDOWN PAGE'); drawText(pixels, width, title, 72, 112, 5, [247, 248, 255]); for (let i = 0; i < 3; i++) drawText(pixels, width, body.slice(i * 62, (i + 1) * 62), 72, 270 + i * 52, 3, [198, 208, 232]); drawText(pixels, width, `share-pages / ${isHtml ? 'HTML' : 'MARKDOWN'}`, 72, 520, 2, [130, 148, 198]); return png(width, height, pixels);
 }
