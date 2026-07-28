@@ -2,7 +2,7 @@ import { marked } from 'marked';
 import { createMcpHandler, McpAgent } from 'agents/mcp';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { previewPng } from '../preview.js';
+import { previewPng, youtubeThumbnailUrl } from '../preview.js';
 
 const MAX_BYTES = 1024 * 1024;
 const TTL_MS = 72 * 60 * 60 * 1000;
@@ -260,7 +260,7 @@ export default {
       if (match[2] === 'download') return new Response(source, { headers: { 'content-type': `${meta.contentType}; charset=utf-8`, 'content-disposition': `attachment; filename="${meta.originalName.replace(/[^A-Za-z0-9._-]/g, '_')}"` } });
       const current = { ...meta, rendered: meta.contentType === 'text/html' ? sanitizeHtml(source) : markdown(source) };
       const editable = Boolean(loggedIn?.email && meta.ownerEmail && loggedIn.email.toLowerCase() === String(meta.ownerEmail).toLowerCase());
-      return new Response(pageHtml(current, `/p/${meta.id}/content`, source, editable, `${url.origin}/p/${meta.id}/preview.png`), { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'content-security-policy': "default-src 'self'; frame-src 'self'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'unsafe-inline' https://cdnjs.cloudflare.com" } });
+      return new Response(pageHtml(current, `/p/${meta.id}/content`, source, editable, youtubeThumbnailUrl(source) || `${url.origin}/p/${meta.id}/preview.png`), { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'content-security-policy': "default-src 'self'; frame-src 'self'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'unsafe-inline' https://cdnjs.cloudflare.com" } });
     }
     if (request.method === 'DELETE' && url.pathname.startsWith('/api/pages/')) { const id = url.pathname.split('/').pop(); const meta = await getMeta(env, id); if (!meta) return json({ error: 'not found' }, 404); await removePage(env, id); return new Response(null, { status: 204 }); }
     return new Response('not found', { status: 404 });

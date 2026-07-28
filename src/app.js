@@ -2,7 +2,7 @@ import { createServer } from 'node:http';
 import { randomBytes } from 'node:crypto';
 import { marked } from 'marked';
 import { PersistentPageStore } from './storage.js';
-import { previewPng } from '../preview.js';
+import { previewPng, youtubeThumbnailUrl } from '../preview.js';
 
 const MAX_BYTES = 1024 * 1024;
 const ALLOWED_TYPES = new Set(['text/markdown', 'text/html']);
@@ -183,7 +183,7 @@ export function createApp(options = {}) {
       if (pageMatch[2] === 'content') { send(200, page.rendered, { 'content-type': `${page.mime}; charset=utf-8`, 'x-content-type-options': 'nosniff', 'content-security-policy': "default-src 'none'; style-src 'unsafe-inline'; img-src https: data:;" }); return; }
       if (pageMatch[2] === 'download') { send(200, page.source, { 'content-type': `${page.mime}; charset=utf-8`, 'content-disposition': `attachment; filename="${page.originalName.replace(/[^A-Za-z0-9._-]/g, '_')}"` }); return; }
       const origin = `${url.protocol}//${url.host}`;
-      send(200, pageShell(page, `/p/${page.id}/content`, page.mime, `${origin}/p/${page.id}/preview.png`), { 'content-security-policy': "default-src 'self'; frame-src 'self'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'unsafe-inline' https://cdnjs.cloudflare.com;" });
+      send(200, pageShell(page, `/p/${page.id}/content`, page.mime, youtubeThumbnailUrl(page.source) || `${origin}/p/${page.id}/preview.png`), { 'content-security-policy': "default-src 'self'; frame-src 'self'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'unsafe-inline' https://cdnjs.cloudflare.com;" });
       return;
     }
     if (req.method === 'DELETE' && url.pathname.startsWith('/api/pages/')) { const id = url.pathname.split('/').pop(); if (!pages.delete(id)) { send(404, 'not found'); return; } res.writeHead(204); res.end(); return; }
