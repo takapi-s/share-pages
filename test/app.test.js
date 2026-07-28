@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../src/app.js';
 import { PersistentPageStore } from '../src/storage.js';
+import { youtubeThumbnailUrl, previewPng } from '../preview.js';
 
 async function withServer(fn) {
   const app = createApp({ ttlMs: 60 * 60 * 1000 });
@@ -10,6 +11,15 @@ async function withServer(fn) {
   const base = `http://127.0.0.1:${server.address().port}`;
   try { return await fn(base); } finally { await new Promise(resolve => server.close(resolve)); }
 }
+
+test('extracts YouTube thumbnails and emits a screenshot-style PNG', () => {
+  assert.equal(youtubeThumbnailUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ'), 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg');
+  assert.equal(youtubeThumbnailUrl('https://youtu.be/dQw4w9WgXcQ?t=12'), 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg');
+  assert.equal(youtubeThumbnailUrl('<p>no external video</p>'), null);
+  const bytes = previewPng({ originalName: 'page.html', contentType: 'text/html' }, '<style>body{color:red}</style><h1>Hello</h1><p>World</p>');
+  assert.deepEqual([...bytes.slice(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
+  assert.ok(bytes.length < 900_000);
+});
 
 test('persists pages across store instances', async () => {
   const directory = `/tmp/share-pages-test-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -47,6 +57,13 @@ test('uploads markdown and renders a share page with download link', async () =>
     assert.equal(page.status, 200);
     const html = await page.text();
     assert.match(html, /<h1[^>]*>Hello<\/h1>/);
+    assert.match(html, /<meta property="og:image" content="http:\/\/127\.0\.0\.1:\d+\/p\/[A-Za-z0-9_-]+\/preview\.png">/);
+    assert.match(html, /name="twitter:card" content="summary_large_image"/);
+    const preview = await fetch(`${base}/p/${result.id}/preview.png`);
+    assert.equal(preview.status, 200);
+    assert.equal(preview.headers.get('content-type'), 'image/png');
+    const bytes = new Uint8Array(await preview.arrayBuffer());
+    assert.deepEqual([...bytes.slice(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
     assert.match(html, /download/);
     assert.match(html, /class="source-panel"/);
     assert.match(html, /textarea/);
